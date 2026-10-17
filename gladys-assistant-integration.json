@@ -1,177 +1,904 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Lichess & Chess.com",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Follow chess players on Lichess and Chess.com: ratings, today's games, records, last game.",
+    "fr": "Suivez des joueurs d'échecs sur Lichess et Chess.com : classements, parties du jour, records.",
+    "de": "Verfolge Schachspieler auf Lichess und Chess.com: Wertungen, Partien des Tages, Rekorde.",
+    "es": "Siga a jugadores de ajedrez en Lichess y Chess.com: puntuaciones, partidas del día, récords."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
-  "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "docker_image": "ghcr.io/guim31/gladys-chess:1.0.0",
+  "gladys_version": ">=5.2.0",
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-chess/main/cover.png",
+  "categories": ["services"],
+  "transports": ["cloud"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Players to follow",
+        "fr": "Joueurs à suivre",
+        "de": "Verfolgte Spieler",
+        "es": "Jugadores que seguir"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Type usernames: yours, your family's, your club's. Public data only, no account and no password. Not affiliated with Lichess or Chess.com.",
+        "fr": "Saisissez des pseudos : le vôtre, ceux de la famille, du club. Données publiques seulement, sans compte ni mot de passe. Non affilié à Lichess ni à Chess.com.",
+        "de": "Gib Benutzernamen ein: deinen, die deiner Familie, deines Vereins. Nur öffentliche Daten, ohne Konto und ohne Passwort. Nicht mit Lichess oder Chess.com verbunden.",
+        "es": "Escriba nombres de usuario: el suyo, los de su familia, los de su club. Solo datos públicos, sin cuenta ni contraseña. Sin afiliación con Lichess ni Chess.com."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://lichess.org",
+          "label": {
+            "en": "Lichess",
+            "fr": "Lichess",
+            "de": "Lichess",
+            "es": "Lichess"
+          }
+        },
+        {
+          "url": "https://www.chess.com",
+          "label": {
+            "en": "Chess.com",
+            "fr": "Chess.com",
+            "de": "Chess.com",
+            "es": "Chess.com"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "lichess_players",
+      "type": "string",
+      "label": {
+        "en": "Lichess players",
+        "fr": "Joueurs Lichess",
+        "de": "Lichess-Spieler",
+        "es": "Jugadores de Lichess"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
-    },
-    {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
       "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+        "en": "Lichess usernames (or profile links), separated by commas, 10 at most.",
+        "fr": "Pseudos Lichess (ou liens de profil), séparés par des virgules, 10 au plus.",
+        "de": "Lichess-Benutzernamen (oder Profillinks), durch Kommas getrennt, höchstens 10.",
+        "es": "Usuarios de Lichess (o enlaces de perfil), separados por comas, 10 como máximo."
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
+      "placeholder": {
+        "en": "e.g. thibault, DrNykterstein",
+        "fr": "ex. thibault, DrNykterstein",
+        "de": "z. B. thibault, DrNykterstein",
+        "es": "p. ej. thibault, DrNykterstein"
+      },
       "required": false,
-      "default": "celsius",
+      "default": ""
+    },
+    {
+      "key": "chesscom_players",
+      "type": "string",
+      "label": {
+        "en": "Chess.com players",
+        "fr": "Joueurs Chess.com",
+        "de": "Chess.com-Spieler",
+        "es": "Jugadores de Chess.com"
+      },
+      "description": {
+        "en": "Chess.com usernames (or profile links), separated by commas, 10 at most.",
+        "fr": "Pseudos Chess.com (ou liens de profil), séparés par des virgules, 10 au plus.",
+        "de": "Chess.com-Benutzernamen (oder Profillinks), durch Kommas getrennt, höchstens 10.",
+        "es": "Usuarios de Chess.com (o enlaces de perfil), separados por comas, 10 como máximo."
+      },
+      "placeholder": {
+        "en": "e.g. hikaru, erik",
+        "fr": "ex. hikaru, erik",
+        "de": "z. B. hikaru, erik",
+        "es": "p. ej. hikaru, erik"
+      },
+      "required": false,
+      "default": ""
+    },
+    {
+      "key": "refresh_minutes",
+      "type": "select",
+      "label": {
+        "en": "Refresh",
+        "fr": "Relevé",
+        "de": "Abruf",
+        "es": "Lectura"
+      },
+      "description": {
+        "en": "How often each player is read. Both sites are free services: 2 minutes is the fastest.",
+        "fr": "La fréquence de lecture de chaque joueur. Les deux sites sont des services gratuits : 2 minutes au plus vite.",
+        "de": "Wie oft jeder Spieler gelesen wird. Beide Seiten sind kostenlose Dienste: höchstens alle 2 Minuten.",
+        "es": "La frecuencia de lectura de cada jugador. Ambos sitios son servicios gratuitos: 2 minutos como mínimo."
+      },
+      "required": false,
+      "default": "5",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "2",
+          "label": {
+            "en": "Every 2 minutes",
+            "fr": "Toutes les 2 minutes",
+            "de": "Alle 2 Minuten",
+            "es": "Cada 2 minutos"
+          }
+        },
+        {
+          "value": "5",
+          "label": {
+            "en": "Every 5 minutes",
+            "fr": "Toutes les 5 minutes",
+            "de": "Alle 5 Minuten",
+            "es": "Cada 5 minutos"
+          }
+        },
+        {
+          "value": "10",
+          "label": {
+            "en": "Every 10 minutes",
+            "fr": "Toutes les 10 minutes",
+            "de": "Alle 10 Minuten",
+            "es": "Cada 10 minutos"
+          }
+        },
+        {
+          "value": "15",
+          "label": {
+            "en": "Every 15 minutes",
+            "fr": "Toutes les 15 minutes",
+            "de": "Alle 15 Minuten",
+            "es": "Cada 15 minutos"
+          }
+        },
+        {
+          "value": "30",
+          "label": {
+            "en": "Every 30 minutes",
+            "fr": "Toutes les 30 minutes",
+            "de": "Alle 30 Minuten",
+            "es": "Cada 30 minutos"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "key": "language",
+      "type": "select",
+      "label": {
+        "en": "Language",
+        "fr": "Langue",
+        "de": "Sprache",
+        "es": "Idioma"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Language of the feature names (set when a device is added), of the last game and of the scene texts.",
+        "fr": "Langue des noms de fonctionnalités (fixés à l'ajout d'un appareil), de la dernière partie et des textes de scène.",
+        "de": "Sprache der Funktionsnamen (beim Hinzufügen eines Geräts festgelegt), der letzten Partie und der Szenentexte.",
+        "es": "Idioma de los nombres de las funciones (fijados al añadir un dispositivo), de la última partida y de los textos de escena."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
+      "key": "check_players",
+      "label": {
+        "en": "Check the players",
+        "fr": "Vérifier les joueurs",
+        "de": "Spieler prüfen",
+        "es": "Comprobar los jugadores"
+      },
+      "timeout_seconds": 120
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "game_finished",
+      "label": {
+        "en": "Game finished",
+        "fr": "Partie terminée",
+        "de": "Partie beendet",
+        "es": "Partida terminada"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "A followed player finished a game, seen at the next refresh.",
+        "fr": "Un joueur suivi a terminé une partie, vue au relevé suivant.",
+        "de": "Ein verfolgter Spieler hat eine Partie beendet, beim nächsten Abruf gesehen.",
+        "es": "Un jugador seguido ha terminado una partida, vista en la siguiente lectura."
       },
       "fields": [
         {
           "key": "device",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "label": {
+            "en": "Player",
+            "fr": "Joueur",
+            "de": "Spieler",
+            "es": "Jugador"
+          },
+          "description": {
+            "en": "Empty: any player.",
+            "fr": "Vide : n'importe quel joueur.",
+            "de": "Leer: jeder Spieler.",
+            "es": "Vacío: cualquier jugador."
+          },
+          "required": false
         },
         {
-          "key": "target",
+          "key": "result",
           "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "label": {
+            "en": "Result",
+            "fr": "Résultat",
+            "de": "Ergebnis",
+            "es": "Resultado"
+          },
+          "description": {
+            "en": "Empty: any result.",
+            "fr": "Vide : n'importe quel résultat.",
+            "de": "Leer: jedes Ergebnis.",
+            "es": "Vacío: cualquier resultado."
+          },
+          "required": false,
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "win",
+              "label": {
+                "en": "Win",
+                "fr": "Victoire",
+                "de": "Sieg",
+                "es": "Victoria"
+              }
+            },
+            {
+              "value": "loss",
+              "label": {
+                "en": "Loss",
+                "fr": "Défaite",
+                "de": "Niederlage",
+                "es": "Derrota"
+              }
+            },
+            {
+              "value": "draw",
+              "label": {
+                "en": "Draw",
+                "fr": "Nulle",
+                "de": "Remis",
+                "es": "Tablas"
+              }
+            }
+          ]
+        },
+        {
+          "key": "time_control",
+          "type": "multi_select",
+          "label": {
+            "en": "Time control",
+            "fr": "Cadence",
+            "de": "Bedenkzeit",
+            "es": "Ritmo"
+          },
+          "description": {
+            "en": "Empty: any time control.",
+            "fr": "Vide : n'importe quelle cadence.",
+            "de": "Leer: jede Bedenkzeit.",
+            "es": "Vacío: cualquier ritmo."
+          },
+          "required": false,
+          "options": [
+            {
+              "value": "bullet",
+              "label": {
+                "en": "Bullet",
+                "fr": "Bullet",
+                "de": "Bullet",
+                "es": "Bullet"
+              }
+            },
+            {
+              "value": "blitz",
+              "label": {
+                "en": "Blitz",
+                "fr": "Blitz",
+                "de": "Blitz",
+                "es": "Blitz"
+              }
+            },
+            {
+              "value": "rapid",
+              "label": {
+                "en": "Rapid",
+                "fr": "Rapide",
+                "de": "Schnellschach",
+                "es": "Rápidas"
+              }
+            },
+            {
+              "value": "classical",
+              "label": {
+                "en": "Classical",
+                "fr": "Classique",
+                "de": "Klassisch",
+                "es": "Clásicas"
+              }
+            },
+            {
+              "value": "daily",
+              "label": {
+                "en": "Correspondence (Daily)",
+                "fr": "Correspondance (Daily)",
+                "de": "Fernschach (Daily)",
+                "es": "Correspondencia (Daily)"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "player_name",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Player",
+            "fr": "Joueur",
+            "de": "Spieler",
+            "es": "Jugador"
+          }
+        },
+        {
+          "key": "result_text",
+          "type": "string",
+          "label": {
+            "en": "Result",
+            "fr": "Résultat",
+            "de": "Ergebnis",
+            "es": "Resultado"
+          }
+        },
+        {
+          "key": "opponent",
+          "type": "string",
+          "label": {
+            "en": "Opponent",
+            "fr": "Adversaire",
+            "de": "Gegner",
+            "es": "Rival"
+          }
+        },
+        {
+          "key": "opponent_rating",
+          "type": "number",
+          "label": {
+            "en": "Opponent's rating",
+            "fr": "Classement de l'adversaire",
+            "de": "Wertung des Gegners",
+            "es": "Puntuación del rival"
+          }
+        },
+        {
+          "key": "rating",
+          "type": "number",
+          "label": {
+            "en": "Rating after the game",
+            "fr": "Classement après la partie",
+            "de": "Wertung nach der Partie",
+            "es": "Puntuación tras la partida"
+          }
+        },
+        {
+          "key": "rating_diff",
+          "type": "number",
+          "label": {
+            "en": "Rating change (Lichess)",
+            "fr": "Variation du classement (Lichess)",
+            "de": "Wertungsänderung (Lichess)",
+            "es": "Cambio de puntuación (Lichess)"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "Link to the game",
+            "fr": "Lien de la partie",
+            "de": "Link zur Partie",
+            "es": "Enlace de la partida"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary",
+            "fr": "Résumé",
+            "de": "Zusammenfassung",
+            "es": "Resumen"
+          }
+        }
+      ]
+    },
+    {
+      "key": "rating_record",
+      "label": {
+        "en": "New rating record",
+        "fr": "Nouveau record de classement",
+        "de": "Neuer Wertungsrekord",
+        "es": "Nuevo récord de puntuación"
+      },
+      "description": {
+        "en": "A followed player beat their best rating in a time control.",
+        "fr": "Un joueur suivi a battu son meilleur classement dans une cadence.",
+        "de": "Ein verfolgter Spieler hat seine beste Wertung in einer Bedenkzeit übertroffen.",
+        "es": "Un jugador seguido ha superado su mejor puntuación en un ritmo."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Player",
+            "fr": "Joueur",
+            "de": "Spieler",
+            "es": "Jugador"
+          },
+          "description": {
+            "en": "Empty: any player.",
+            "fr": "Vide : n'importe quel joueur.",
+            "de": "Leer: jeder Spieler.",
+            "es": "Vacío: cualquier jugador."
+          },
+          "required": false
+        },
+        {
+          "key": "time_control",
+          "type": "multi_select",
+          "label": {
+            "en": "Time control",
+            "fr": "Cadence",
+            "de": "Bedenkzeit",
+            "es": "Ritmo"
+          },
+          "description": {
+            "en": "Empty: any time control.",
+            "fr": "Vide : n'importe quelle cadence.",
+            "de": "Leer: jede Bedenkzeit.",
+            "es": "Vacío: cualquier ritmo."
+          },
+          "required": false,
+          "options": [
+            {
+              "value": "bullet",
+              "label": {
+                "en": "Bullet",
+                "fr": "Bullet",
+                "de": "Bullet",
+                "es": "Bullet"
+              }
+            },
+            {
+              "value": "blitz",
+              "label": {
+                "en": "Blitz",
+                "fr": "Blitz",
+                "de": "Blitz",
+                "es": "Blitz"
+              }
+            },
+            {
+              "value": "rapid",
+              "label": {
+                "en": "Rapid",
+                "fr": "Rapide",
+                "de": "Schnellschach",
+                "es": "Rápidas"
+              }
+            },
+            {
+              "value": "classical",
+              "label": {
+                "en": "Classical",
+                "fr": "Classique",
+                "de": "Klassisch",
+                "es": "Clásicas"
+              }
+            },
+            {
+              "value": "daily",
+              "label": {
+                "en": "Correspondence (Daily)",
+                "fr": "Correspondance (Daily)",
+                "de": "Fernschach (Daily)",
+                "es": "Correspondencia (Daily)"
+              }
+            },
+            {
+              "value": "puzzle",
+              "label": {
+                "en": "Puzzles (Lichess)",
+                "fr": "Problèmes (Lichess)",
+                "de": "Puzzles (Lichess)",
+                "es": "Problemas (Lichess)"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "player_name",
+          "type": "string",
+          "label": {
+            "en": "Player",
+            "fr": "Joueur",
+            "de": "Spieler",
+            "es": "Jugador"
+          }
+        },
+        {
+          "key": "rating",
+          "type": "number",
+          "label": {
+            "en": "New record",
+            "fr": "Nouveau record",
+            "de": "Neuer Rekord",
+            "es": "Nuevo récord"
+          }
+        },
+        {
+          "key": "previous_best",
+          "type": "number",
+          "label": {
+            "en": "Previous best",
+            "fr": "Record précédent",
+            "de": "Bisheriger Rekord",
+            "es": "Récord anterior"
+          }
+        },
+        {
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary",
+            "fr": "Résumé",
+            "de": "Zusammenfassung",
+            "es": "Resumen"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+      "key": "get_player",
+      "label": {
+        "en": "Get a chess player",
+        "fr": "Lire un joueur d'échecs",
+        "de": "Schachspieler lesen",
+        "es": "Leer un jugador de ajedrez"
       },
-      "timeout_seconds": 15,
+      "description": {
+        "en": "Ratings and games of the day of a player, with a sentence ready for a notification.",
+        "fr": "Classements et parties du jour d'un joueur, avec une phrase prête pour une notification.",
+        "de": "Wertungen und Partien des Tages eines Spielers, mit einem Satz für eine Benachrichtigung.",
+        "es": "Puntuaciones y partidas del día de un jugador, con una frase lista para una notificación."
+      },
+      "timeout_seconds": 10,
       "fields": [
         {
-          "key": "device",
+          "key": "player",
           "type": "select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
+          "label": {
+            "en": "Player",
+            "fr": "Joueur",
+            "de": "Spieler",
+            "es": "Jugador"
+          },
           "required": true
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
+          "key": "summary",
+          "type": "string",
+          "label": {
+            "en": "Summary",
+            "fr": "Résumé",
+            "de": "Zusammenfassung",
+            "es": "Resumen"
+          }
+        },
+        {
+          "key": "rating_bullet",
+          "type": "number",
+          "label": {
+            "en": "Bullet rating",
+            "fr": "Classement bullet",
+            "de": "Bullet-Wertung",
+            "es": "Puntuación bullet"
+          }
+        },
+        {
+          "key": "rating_blitz",
+          "type": "number",
+          "label": {
+            "en": "Blitz rating",
+            "fr": "Classement blitz",
+            "de": "Blitz-Wertung",
+            "es": "Puntuación blitz"
+          }
+        },
+        {
+          "key": "rating_rapid",
+          "type": "number",
+          "label": {
+            "en": "Rapid rating",
+            "fr": "Classement rapide",
+            "de": "Schnellschach-Wertung",
+            "es": "Puntuación rápida"
+          }
+        },
+        {
+          "key": "rating_classical",
+          "type": "number",
+          "label": {
+            "en": "Classical rating",
+            "fr": "Classement classique",
+            "de": "Klassisch-Wertung",
+            "es": "Puntuación clásica"
+          }
+        },
+        {
+          "key": "rating_daily",
+          "type": "number",
+          "label": {
+            "en": "Correspondence rating",
+            "fr": "Classement correspondance",
+            "de": "Fernschach-Wertung",
+            "es": "Puntuación por correspondencia"
+          }
+        },
+        {
+          "key": "rating_puzzle",
+          "type": "number",
+          "label": {
+            "en": "Puzzle rating",
+            "fr": "Classement problèmes",
+            "de": "Puzzle-Wertung",
+            "es": "Puntuación de problemas"
+          }
+        },
+        {
+          "key": "games_today",
+          "type": "number",
+          "label": {
+            "en": "Games today",
+            "fr": "Parties du jour",
+            "de": "Partien heute",
+            "es": "Partidas de hoy"
+          }
+        },
+        {
+          "key": "wins_today",
+          "type": "number",
+          "label": {
+            "en": "Wins today",
+            "fr": "Victoires du jour",
+            "de": "Siege heute",
+            "es": "Victorias de hoy"
+          }
+        },
+        {
+          "key": "last_result",
+          "type": "string",
+          "label": {
+            "en": "Last result (win, loss, draw)",
+            "fr": "Dernier résultat (win, loss, draw)",
+            "de": "Letztes Ergebnis (win, loss, draw)",
+            "es": "Último resultado (win, loss, draw)"
+          }
+        },
+        {
+          "key": "last_opponent",
+          "type": "string",
+          "label": {
+            "en": "Last opponent",
+            "fr": "Dernier adversaire",
+            "de": "Letzter Gegner",
+            "es": "Último rival"
+          }
+        },
+        {
+          "key": "online",
           "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "label": {
+            "en": "Online (Lichess)",
+            "fr": "En ligne (Lichess)",
+            "de": "Online (Lichess)",
+            "es": "En línea (Lichess)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "get_daily_puzzle",
+      "label": {
+        "en": "Get the puzzle of the day",
+        "fr": "Lire le problème du jour",
+        "de": "Puzzle des Tages lesen",
+        "es": "Leer el problema del día"
+      },
+      "description": {
+        "en": "The puzzle of the day of Lichess or Chess.com, its link and a sentence for a notification.",
+        "fr": "Le problème du jour de Lichess ou Chess.com, son lien et une phrase pour une notification.",
+        "de": "Das Puzzle des Tages von Lichess oder Chess.com, sein Link und ein Satz für eine Benachrichtigung.",
+        "es": "El problema del día de Lichess o Chess.com, su enlace y una frase para una notificación."
+      },
+      "timeout_seconds": 20,
+      "fields": [
+        {
+          "key": "platform",
+          "type": "select",
+          "label": {
+            "en": "Site",
+            "fr": "Site",
+            "de": "Seite",
+            "es": "Sitio"
+          },
+          "description": {
+            "en": "Empty: Lichess.",
+            "fr": "Vide : Lichess.",
+            "de": "Leer: Lichess.",
+            "es": "Vacío: Lichess."
+          },
+          "required": false,
+          "options": [
+            {
+              "value": "lichess",
+              "label": {
+                "en": "Lichess",
+                "fr": "Lichess",
+                "de": "Lichess",
+                "es": "Lichess"
+              }
+            },
+            {
+              "value": "chesscom",
+              "label": {
+                "en": "Chess.com",
+                "fr": "Chess.com",
+                "de": "Chess.com",
+                "es": "Chess.com"
+              }
+            }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "key": "message",
+          "type": "string",
+          "label": {
+            "en": "Message",
+            "fr": "Message",
+            "de": "Nachricht",
+            "es": "Mensaje"
+          }
+        },
+        {
+          "key": "url",
+          "type": "string",
+          "label": {
+            "en": "Link",
+            "fr": "Lien",
+            "de": "Link",
+            "es": "Enlace"
+          }
+        },
+        {
+          "key": "title",
+          "type": "string",
+          "label": {
+            "en": "Title (Chess.com)",
+            "fr": "Titre (Chess.com)",
+            "de": "Titel (Chess.com)",
+            "es": "Título (Chess.com)"
+          }
+        },
+        {
+          "key": "rating",
+          "type": "number",
+          "label": {
+            "en": "Difficulty (Lichess)",
+            "fr": "Difficulté (Lichess)",
+            "de": "Schwierigkeit (Lichess)",
+            "es": "Dificultad (Lichess)"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "chess_players",
+      "label": {
+        "en": "Chess players",
+        "fr": "Joueurs d'échecs",
+        "de": "Schachspieler",
+        "es": "Jugadores de ajedrez"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Ratings, last game and games of the day, with the puzzle of the day.",
+        "fr": "Classements, dernière partie et parties du jour, avec le problème du jour.",
+        "de": "Wertungen, letzte Partie und Partien des Tages, mit dem Puzzle des Tages.",
+        "es": "Puntuaciones, última partida y partidas del día, con el problema del día."
+      },
+      "icon": "award",
+      "settings": [
+        {
+          "key": "player",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Player",
+            "fr": "Joueur",
+            "de": "Spieler",
+            "es": "Jugador"
+          },
+          "description": {
+            "en": "Empty: one row per player, with the puzzles of the day.",
+            "fr": "Vide : une ligne par joueur, avec les problèmes du jour.",
+            "de": "Leer: eine Zeile pro Spieler, mit den Puzzles des Tages.",
+            "es": "Vacío: una fila por jugador, con los problemas del día."
+          },
+          "required": false
+        }
+      ]
     }
   ]
 }

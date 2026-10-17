@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
+  "name": "gladys-chess",
   "version": "1.0.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Gladys Assistant integration: follow Lichess and Chess.com players (ratings, games, records, puzzle of the day).",
   "type": "module",
   "main": "index.js",
   "scripts": {

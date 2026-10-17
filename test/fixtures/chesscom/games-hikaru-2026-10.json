@@ -1,0 +1,304 @@
+{
+  "games": [
+    {
+      "url": "https://www.chess.com/game/live/186572190191",
+      "time_control": "60",
+      "end_time": 1792258635,
+      "rated": true,
+      "uuid": "392f78c1-ca51-11f1-85a4-6cfe54652c60",
+      "time_class": "bullet",
+      "rules": "chess",
+      "white": {
+        "rating": 3446,
+        "result": "resigned",
+        "@id": "https://api.chess.com/pub/player/hikaru",
+        "username": "Hikaru",
+        "uuid": "6f4deb88-7718-11e3-8016-000000000000"
+      },
+      "black": {
+        "rating": 3255,
+        "result": "win",
+        "@id": "https://api.chess.com/pub/player/faustinooro",
+        "username": "FaustinoOro",
+        "uuid": "33ad20e4-a2bd-11ea-b263-552d83177043"
+      },
+      "eco": "https://www.chess.com/openings/Giuoco-Piano-Game...6.c3-O-O-7.Nbd2-a5",
+      "tournament": "https://api.chess.com/pub/tournament/bullet-brawl-october-17-2026-31390917"
+    },
+    {
+      "url": "https://www.chess.com/game/live/186572190535",
+      "time_control": "60",
+      "end_time": 1792258719,
+      "rated": true,
+      "uuid": "71d126aa-ca51-11f1-85a4-6cfe54652c60",
+      "time_class": "bullet",
+      "rules": "chess",
+      "white": {
+        "rating": 3449,
+        "result": "win",
+        "@id": "https://api.chess.com/pub/player/hikaru",
+        "username": "Hikaru",
+        "uuid": "6f4deb88-7718-11e3-8016-000000000000"
+      },
+      "black": {
+        "rating": 3155,
+        "result": "resigned",
+        "@id": "https://api.chess.com/pub/player/dropstonedp",
+        "username": "dropstoneDP",
+        "uuid": "37f4ea8a-1c33-11ea-8ed3-2744cbd46551"
+      },
+      "eco": "https://www.chess.com/openings/Bishops-Opening-Berlin-Spielmann-Attack-4...c6",
+      "tournament": "https://api.chess.com/pub/tournament/bullet-brawl-october-17-2026-31390917"
+    },
+    {
+      "url": "https://www.chess.com/game/live/186572190793",
+      "time_control": "60",
+      "end_time": 1792258824,
+      "rated": true,
+      "uuid": "a47c0a01-ca51-11f1-85a4-6cfe54652c60",
+      "time_class": "bullet",
+      "rules": "chess",
+      "white": {
+        "rating": 3268,
+        "result": "win",
+        "@id": "https://api.chess.com/pub/player/faustinooro",
+        "username": "FaustinoOro",
+        "uuid": "33ad20e4-a2bd-11ea-b263-552d83177043"
+      },
+      "black": {
+        "rating": 3437,
+        "result": "resigned",
+        "@id": "https://api.chess.com/pub/player/hikaru",
+        "username": "Hikaru",
+        "uuid": "6f4deb88-7718-11e3-8016-000000000000"
+      },
+      "eco": "https://www.chess.com/openings/Sicilian-Defense-Kan-Modern-Variation-5...Qc7-6.O-O-Nf6-7.Qe2",
+      "tournament": "https://api.chess.com/pub/tournament/bullet-brawl-october-17-2026-31390917"
+    },
+    {
+      "url": "https://www.chess.com/game/live/186572191141",
+      "time_control": "60",
+      "end_time": 1792258943,
+      "rated": true,
+      "uuid": "e312fd07-ca51-11f1-85a4-6cfe54652c60",
+      "time_class": "bullet",
+      "rules": "chess",
+      "white": {
+        "rating": 3073,
+        "result": "win",
+        "@id": "https://api.chess.com/pub/player/metiforce",
+        "username": "MetiForce",
+        "uuid": "45acd830-aaba-11e9-8fc2-b1abd69122a5"
+      },
+      "black": {
+        "rating": 3423,
+        "result": "resigned",
+        "@id": "https://api.chess.com/pub/player/hikaru",
+        "username": "Hikaru",
+        "uuid": "6f4deb88-7718-11e3-8016-000000000000"
+      },
+      "eco": "https://www.chess.com/openings/Grunfeld-Defense-Exchange-Variation-5.e4-Nb6",
+      "tournament": "https://api.chess.com/pub/tournament/bullet-brawl-october-17-2026-31390917"
+    },
+    {
+      "url": "https://www.chess.com/game/live/186572789385",
+      "time_control": "60",
+      "end_time": 1792258989,
+      "rated": true,
+      "uuid": "25d5e63a-ca52-11f1-85a4-6cfe54652c60",
+      "time_class": "bullet",
+      "rules": "chess",
+      "white": {
+        "rating": 3428,
+        "result": "win",
+        "@id": "https://api.chess.com/pub/player/hikaru",
+        "username": "Hikaru",
+        "uuid": "6f4deb88-7718-11e3-8016-000000000000"
+      },
+      "black": {
+        "rating": 3297,
+        "result": "resigned",
+        "@id": "https://api.chess.com/pub/player/jospem",
+        "username": "Jospem",
+        "uuid": "29a28f80-d972-11e5-8048-000000000000"
+      },
+      "eco": "https://www.chess.com/openings/Queens-Gambit-Declined-3.Nf3-Nf6-4.e3-Nbd7",
+      "tournament": "https://api.chess.com/pub/tournament/bullet-brawl-october-17-2026-31390917"
+    },
+    {
+      "url": "https://www.chess.com/game/live/186572789547",
+      "time_control": "60",
+      "end_time": 1792259134,
+      "rated": true,
+      "uuid": "49010ab5-ca52-11f1-85a4-6cfe54652c60",
+      "time_class": "bullet",
+      "rules": "chess",
+      "white": {
+        "rating": 3179,
+        "result": "checkmated",
+        "@id": "https://api.chess.com/pub/player/zhigalko_sergei",
+        "username": "Zhigalko_Sergei",
+        "uuid": "52cc854e-cd94-11e5-8024-000000000000"
+      },
+      "black": {
+        "rating": 3431,
+        "result": "win",
+        "@id": "https://api.chess.com/pub/player/hikaru",
+        "username": "Hikaru",
+        "uuid": "6f4deb88-7718-11e3-8016-000000000000"
+      },
+      "eco": "https://www.chess.com/openings/Modern-Defense-Standard-Line-3...a6-4.Nf3",
+      "tournament": "https://api.chess.com/pub/tournament/bullet-brawl-october-17-2026-31390917"
+    },
+    {
+      "url": "https://www.chess.com/game/live/186572789973",
+      "time_control": "60",
+      "end_time": 1792259286,
+      "rated": true,
+      "uuid": "9e3e0688-ca52-11f1-85a4-6cfe54652c60",
+      "time_class": "bullet",
+      "rules": "chess",
+      "white": {
+        "rating": 3435,
+        "result": "win",
+        "@id": "https://api.chess.com/pub/player/hikaru",
+        "username": "Hikaru",
+        "uuid": "6f4deb88-7718-11e3-8016-000000000000"
+      },
+      "black": {
+        "rating": 3260,
+        "result": "timeout",
+        "@id": "https://api.chess.com/pub/player/miterryble",
+        "username": "MITerryble",
+        "uuid": "b9c64c6e-bd08-11e4-8016-000000000000"
+      },
+      "eco": "https://www.chess.com/openings/Queens-Indian-Defense-Spassky-System-4...Bb7",
+      "tournament": "https://api.chess.com/pub/tournament/bullet-brawl-october-17-2026-31390917"
+    },
+    {
+      "url": "https://www.chess.com/game/live/186572790361",
+      "time_control": "60",
+      "end_time": 1792259439,
+      "rated": true,
+      "uuid": "fe363425-ca52-11f1-85a4-6cfe54652c60",
+      "time_class": "bullet",
+      "rules": "chess",
+      "white": {
+        "rating": 3436,
+        "result": "win",
+        "@id": "https://api.chess.com/pub/player/hikaru",
+        "username": "Hikaru",
+        "uuid": "6f4deb88-7718-11e3-8016-000000000000"
+      },
+      "black": {
+        "rating": 3014,
+        "result": "resigned",
+        "@id": "https://api.chess.com/pub/player/urumirtsepmet1",
+        "username": "urumirtsepmet1",
+        "uuid": "2cff59dc-49fc-11e7-8056-000000000000"
+      },
+      "eco": "https://www.chess.com/openings/French-Defense-Knight-Variation-Two-Knights-Variation-3...Nf6",
+      "tournament": "https://api.chess.com/pub/tournament/bullet-brawl-october-17-2026-31390917"
+    },
+    {
+      "url": "https://www.chess.com/game/live/186573389151",
+      "time_control": "60",
+      "end_time": 1792259583,
+      "rated": true,
+      "uuid": "5706dd56-ca53-11f1-85a4-6cfe54652c60",
+      "time_class": "bullet",
+      "rules": "chess",
+      "white": {
+        "rating": 3230,
+        "result": "resigned",
+        "@id": "https://api.chess.com/pub/player/rezamahdavi2008",
+        "username": "rezamahdavi2008",
+        "uuid": "87dd2178-8352-11e8-8028-000000000000"
+      },
+      "black": {
+        "rating": 3440,
+        "result": "win",
+        "@id": "https://api.chess.com/pub/player/hikaru",
+        "username": "Hikaru",
+        "uuid": "6f4deb88-7718-11e3-8016-000000000000"
+      },
+      "eco": "https://www.chess.com/openings/Alekhines-Defense-Four-Pawns-Main-Line...9.Nf3-Bg4-10.Be2-Bxf3-11.gxf3",
+      "tournament": "https://api.chess.com/pub/tournament/bullet-brawl-october-17-2026-31390917"
+    },
+    {
+      "url": "https://www.chess.com/game/live/186573389517",
+      "time_control": "60",
+      "end_time": 1792259715,
+      "rated": true,
+      "uuid": "a6e72b2e-ca53-11f1-85a4-6cfe54652c60",
+      "time_class": "bullet",
+      "rules": "chess",
+      "white": {
+        "rating": 3427,
+        "result": "resigned",
+        "@id": "https://api.chess.com/pub/player/hikaru",
+        "username": "Hikaru",
+        "uuid": "6f4deb88-7718-11e3-8016-000000000000"
+      },
+      "black": {
+        "rating": 3189,
+        "result": "win",
+        "@id": "https://api.chess.com/pub/player/zhigalko_sergei",
+        "username": "Zhigalko_Sergei",
+        "uuid": "52cc854e-cd94-11e5-8024-000000000000"
+      },
+      "eco": "https://www.chess.com/openings/Sicilian-Defense-Nyezhmetdinov-Rossolimo-Attack-3...Nf6",
+      "tournament": "https://api.chess.com/pub/tournament/bullet-brawl-october-17-2026-31390917"
+    },
+    {
+      "url": "https://www.chess.com/game/live/186573390087",
+      "time_control": "60",
+      "end_time": 1792259770,
+      "rated": true,
+      "uuid": "fd555435-ca53-11f1-85a4-6cfe54652c60",
+      "time_class": "bullet",
+      "rules": "chess",
+      "white": {
+        "rating": 3432,
+        "result": "win",
+        "@id": "https://api.chess.com/pub/player/hikaru",
+        "username": "Hikaru",
+        "uuid": "6f4deb88-7718-11e3-8016-000000000000"
+      },
+      "black": {
+        "rating": 3285,
+        "result": "resigned",
+        "@id": "https://api.chess.com/pub/player/jospem",
+        "username": "Jospem",
+        "uuid": "29a28f80-d972-11e5-8048-000000000000"
+      },
+      "eco": "https://www.chess.com/openings/Sicilian-Defense...3.Nc3-a6-4.d4-cxd4-5.Nxd4",
+      "tournament": "https://api.chess.com/pub/tournament/bullet-brawl-october-17-2026-31390917"
+    },
+    {
+      "url": "https://www.chess.com/game/live/186573390209",
+      "time_control": "60",
+      "end_time": 1792259894,
+      "rated": true,
+      "uuid": "1a8a49eb-ca54-11f1-85a4-6cfe54652c60",
+      "time_class": "bullet",
+      "rules": "chess",
+      "white": {
+        "rating": 3256,
+        "result": "win",
+        "@id": "https://api.chess.com/pub/player/oleksandr_bortnyk",
+        "username": "Oleksandr_Bortnyk",
+        "uuid": "12d55bb4-1907-11e6-805a-000000000000"
+      },
+      "black": {
+        "rating": 3420,
+        "result": "resigned",
+        "@id": "https://api.chess.com/pub/player/hikaru",
+        "username": "Hikaru",
+        "uuid": "6f4deb88-7718-11e3-8016-000000000000"
+      },
+      "eco": "https://www.chess.com/openings/Scandinavian-Defense-Mieses-Kotrc-Main-Line-4.Nf3",
+      "tournament": "https://api.chess.com/pub/tournament/bullet-brawl-october-17-2026-31390917"
+    }
+  ]
+}

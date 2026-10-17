@@ -30,6 +30,15 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+What the integration handles:
+
+- **Network**: outgoing HTTPS requests to the public APIs of Lichess
+  (`lichess.org`) and Chess.com (`api.chess.com`) only. It opens no port and
+  needs no account, token or password.
+- **`/data`**: `players.json`, what the integration learnt about the followed
+  players (public usernames, ratings, best ratings, last game, games of the
+  day). No secret.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+and the Lichess and Chess.com services.

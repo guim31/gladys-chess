@@ -16,8 +16,8 @@ its only runtime dependency. It started from the official JavaScript template.
 ```bash
 npm install
 npm test                                  # node --test, the built-in runner
-node --test test/devices.test.js          # one file
-node --test --test-name-pattern "plug"    # tests whose name matches
+node --test test/app.test.js              # one file
+node --test --test-name-pattern "record"  # tests whose name matches
 npm run lint                              # ESLint
 npm run format:check                      # Prettier, as the CI runs it
 npm run format                            # Prettier, fix in place
@@ -32,15 +32,26 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/app.js                        every handler (connection, discovery, poll, action, widget, scenes)
+src/http.js                       HTTP: User-Agent, one request at a time per host, 429 pause, ETag
+src/lichess.js                    Lichess API: profile, statuses, games (NDJSON), rating history, puzzle
+src/chesscom.js                   Chess.com PubAPI: profile, stats, month archives, puzzle
+src/players.js                    records of the players: games, records, today, states, triggers
+src/devices.js                    Gladys device of a player (external ids, features, names)
+src/poller.js                     the container's own timer (onPoll is only a fallback)
+src/puzzles.js                    puzzles of the day, an hour of cache
+src/store.js                      /data/players.json (atomic, coalesced writes)
+src/actions.js                    configuration button check_players
+src/scenes.js                     scene actions get_player, get_daily_puzzle
+src/widgets.js                    widget chess_players
+src/i18n.js                       every user-facing text, en/fr/de/es
+src/time.js                       local midnight (TZ injected by the supervisor)
+src/issues.js                     repeated failures logged once
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (mandatory)
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+test/fixtures/{lichess,chesscom}/ real answers of both APIs (17/10/2026)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +81,9 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in English, French, German and Spanish: action
+  messages, manifest texts, widget texts, feature names, and
+  `docs/{en,fr,de,es}.md` with the same sections (`test/i18n.test.js`).
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -233,3 +245,32 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Lichess et Chess.com (cette intégration)
+
+- **Lichess** (`https://lichess.org/api`, sans compte) : `GET /api/user/{id}` (classements par `perfs`, `count.all`,
+  un compte fermé répond `disabled: true`) ; `GET /api/users/status?ids=a,b` (`online` et `playing` **présents
+  seulement quand vrais**) ; `GET /api/games/user/{id}?since=…&max=…&moves=false` en NDJSON (`since` porte sur la
+  **date de début** : une longue partie par correspondance peut échapper à « Partie terminée », dit dans la doc) ;
+  `GET /api/user/{id}/rating-history` (noms en clés de perf, `bullet`… ; **vide pour DrNykterstein**, historique
+  caché) ; `GET /api/puzzle/daily`. Une cadence jamais jouée vaut 1500 avec `games: 0` : ne pas la publier. Une
+  seule requête à la fois, une minute de silence après un 429.
+- **Chess.com PubAPI** (`https://api.chess.com/pub`) : **`/player/{u}/is-online` répond 404** (supprimé) : pas de
+  « en ligne » pour Chess.com. `stats` donne `last.rating` et `best.rating` ; les archives mensuelles sont par
+  **mois UTC**, triées par fin de partie, jusqu'à 1,3 Mo (Hikaru, octobre 2026) : requêtes conditionnelles
+  (`If-None-Match`, ETag faible) → 304. Résultats : `win`, nulles (`agreed`, `repetition`, `stalemate`,
+  `insufficient`, `50move`, `timevsinsufficient`), tout le reste perd. Pas de variation de classement par partie.
+  `User-Agent` explicite avec l'adresse du dépôt (demande de Chess.com).
+- Identifiants : appareil `lichess:<pseudo en minuscules>` ou `chesscom:<pseudo en minuscules>`, fonctionnalités
+  `rating_<cadence>`, `online`, `playing`, `last_game`, `games_today`, `wins_today`. Cadences communes : `bullet`
+  (UltraBullet compris pour les parties), `blitz`, `rapid`, `classical`, `daily` (correspondance Lichess, Daily
+  Chess.com), `puzzle` (Lichess).
+- Couples Gladys : classements et compteurs en `counter-sensor/integer` (bornes 0–3500 et 0–500), présence en
+  `input/binary`, dernière partie en `text/text` (`keep_history: false`, publiée en `{ text }`).
+- Déclencheurs : jamais à la première lecture d'un joueur ni pour un joueur non ajouté (filigrane `watermark` =
+  fin de la dernière partie vue, persisté) ; cinq « Partie terminée » au plus par lecture ; record = classement
+  au-dessus du meilleur connu (amorcé par l'historique Lichess ou le `best` Chess.com), jamais pour un classement
+  provisoire Lichess. Les clés de filtre (`result`, `time_control`) sont dans les données de l'événement, en
+  valeurs brutes ; les textes localisés suivent le champ `language`.
+- « Aujourd'hui » : parties terminées depuis minuit local (`TZ`), recalculées à chaque lecture depuis
+  `min(minuit, dernière partie vue)` ; remises à zéro à l'affichage dès que la date change.
