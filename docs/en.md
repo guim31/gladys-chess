@@ -1,61 +1,147 @@
-# Demo Devices Template
+# Lichess & Chess.com
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+Follow chess players of [Lichess](https://lichess.org) and
+[Chess.com](https://www.chess.com) in Gladys: yours, your children's, your
+club's, or a champion's.
 
-## What you get
+This integration is not affiliated with Lichess or Chess.com.
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+## What it does
+
+- Reads the **public profiles** of the players you type, with no account and no
+  password: nothing is ever written on the sites.
+- Creates **one device per player**, with:
+  - a **rating** per time control: bullet, blitz, rapid, classical,
+    correspondence and puzzles on Lichess; bullet, blitz, rapid and Daily on
+    Chess.com;
+  - **Online** and **In a game** (Lichess only: Chess.com no longer publishes
+    it);
+  - the **Last game**, as a sentence: "Win vs Opponent (blitz, 1756 +6)";
+  - **Games today** and **Wins today**, back to zero at midnight.
+- Adds a **Chess players** dashboard widget, two scene triggers **Game
+  finished** and **New rating record**, and two scene actions **Get a chess
+  player** and **Get the puzzle of the day**.
+
+## Requirements
+
+- Gladys Assistant **5.2.0** or later.
+- Internet access (the public Lichess and Chess.com APIs).
+- The usernames of the players. To try it: `thibault` (the founder of Lichess)
+  or `DrNykterstein` on Lichess, `hikaru` or `erik` on Chess.com.
 
 ## Configuration
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+### Players
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+- **Lichess players** and **Chess.com players**: usernames separated by
+  commas, 10 at most per site. A profile link works too
+  (`https://lichess.org/@/thibault`, `https://www.chess.com/member/hikaru`).
+- Then open the **Discovery** tab of the integration and add the players to
+  Gladys. Only the added players are followed.
+- The **Check the players** button reads every player now and says what each
+  site answered: the right way to check a username.
 
-## Actions
+### Other settings
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+- **Refresh**: how often each player is read, from 2 to 30 minutes (5 by
+  default). A finished game, a new rating or an online player is seen at the
+  next refresh.
+- **Language**: the language of the feature names (set when a device is added:
+  remove and add the device again to change them), of the last game and of the
+  scene texts. French by default.
+
+## Devices
+
+One device per player, named "username (site)".
+
+| Feature                 | Value                                                |
+| ----------------------- | ---------------------------------------------------- |
+| Bullet, Blitz… rating   | the current rating of the time control               |
+| Online (Lichess)        | 1 when the player is connected to Lichess            |
+| In a game (Lichess)     | 1 during a game                                      |
+| Last game               | result, opponent, time control and rating after it   |
+| Games today, Wins today | the games finished since midnight (Gladys time zone) |
+
+A time control the player never played has no value until the first game.
+UltraBullet games count as bullet in the "Game finished" filter. Ratings, games and the online
+status come from the sites: Gladys keeps their history.
+
+## Widget
+
+**Chess players**, from the dashboard editor:
+
+- with a **player** chosen: up to four live rating tiles (the most played time
+  controls), the last game, the score of the day (+wins =draws −losses), online
+  or in a game (Lichess), and buttons to open the profile, the last game and
+  the puzzle of the day;
+- without one: one row per added player with their most played rating (green
+  when online on Lichess, orange in a game), and a button for the puzzle of
+  the day of each site followed.
 
 ## Scenes
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+### Trigger: Game finished
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+A followed player finished a game. Filters: the **player**, the **result**
+(win, loss, draw) and the **time control** (bullet, blitz, rapid, classical,
+correspondence), all optional. Variables: player, result, opponent, opponent's
+rating, rating after the game, rating change (Lichess only), link to the game,
+and a ready-made **summary**.
 
-## Dashboard
+The games played before the player was added are not news: nothing fires for
+them. After a long outage, only the last five new games fire.
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+### Trigger: New rating record
+
+A followed player beat their best rating ever in a time control (the puzzle
+rating included on Lichess). The best is the one the site knows (Lichess
+rating history, Chess.com "best"). A provisional Lichess rating never counts.
+Variables: player, new record, previous best, summary.
+
+### Action: Get a chess player
+
+The ratings, today's games and the last game of a player: values to use in
+the next blocks, and a **summary** for a notification, e.g. "Hikaru
+(Chess.com): blitz 3465, bullet 3420, rapid 2838. Today: 12 games: +7 =0 −5.
+Last game: Loss vs …". Read from what Gladys already knows: no request.
+
+### Action: Get the puzzle of the day
+
+The puzzle of the day of Lichess (by default) or Chess.com: its link, its
+title or difficulty, and a **message** ready to send.
+
+## Scene examples
+
+- **Encourage the kids**: trigger Game finished, player "Léa", result win →
+  send "Well done! {{summary}}" to the family.
+- **The puzzle with breakfast**: every day at 7:30, Get the puzzle of the day,
+  then send its message on Telegram.
+- **Celebrate a record**: trigger New rating record → light the living room in
+  gold and send the summary.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **A player does not appear in Discovery**: press **Check the players**. "No
+  such player" means a wrong username, or a closed account.
+- **No online status on Chess.com**: its public API no longer publishes it
+  (the old `is-online` address answers "not found").
+- **A game shows late**: games are seen at the next refresh (5 minutes by
+  default). Chess.com may also take a few minutes to publish a game.
+- **"Lichess and Chess.com cannot be reached"**: both sites failed at the last
+  refresh (network, maintenance, or too many requests). The integration waits
+  a minute after a "too many requests" answer, then tries again on its own.
+- **Logs**: `LOG_LEVEL=debug` shows every request; the normal level only shows
+  starts, errors and fired scenes.
+
+## Limits
+
+- Public data only: no private game, no chat, no move.
+- Lichess and Chess.com are free services: 10 players per site, 2 minutes
+  between reads at most. Every request carries a `User-Agent` naming the
+  integration, as Chess.com asks, and the requests to a site go one at a time,
+  as Lichess asks.
+- "Today" counts at most the last 100 Lichess games of the day.
+- Lichess lists the games by start date: a correspondence game started before
+  the last game seen may never fire "Game finished", nor count today.
+- Chess.com does not give the rating change of a game, and a variant game
+  (Chess960, Atomic…) gives no rating in "Game finished".

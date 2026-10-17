@@ -1,41 +1,93 @@
 // -----------------------------------------------------------------------------
-// Scene actions (SDK v0.14+, Gladys 5.1+).
+// Scene actions (Gladys 5.1+).
 //
-// A scene action is an OPERATION a scene author places in a scene, with
-// parameters and a result: "identify this device", "take a snapshot", "clean
-// these rooms". Each one is declared in the manifest `scene_actions` field
-// (key, label, `fields` in the config_schema grammar, scalar `outputs`) and
-// handled here, keyed by that same `key`; index.js registers every entry with
-// `gladys.onSceneAction(key, ...)`.
+//   get_player       : the ratings and today's games of a player, with a
+//                      sentence ready for a notification. Read from what the
+//                      integration already knows: no request to the sites.
+//   get_daily_puzzle : the puzzle of the day of Lichess or Chess.com, its link
+//                      and a sentence ready for a notification.
 //
-// Scene TRIGGERS are the other direction ("this happened"): they are fired by
-// the device that observes the event, see src/devices/motionSensor.js.
-//
-// The rules that matter:
-//   - `fields` arrive RESOLVED: scene variables substituted, defaults applied,
-//     validated by the core; a `"source": "devices"` field is the chosen
-//     device external_id;
-//   - resolve an object of the declared `outputs` (scalars only), readable by
-//     the following actions of the scene, or `undefined` for none. Keys not
-//     declared in the manifest are dropped by the core;
-//   - throwing fails THIS action only: the scene logs it and continues. A
-//     scene action is never a condition: return an output and let the scene
-//     author gate on it;
-//   - never fire a scene event as a consequence of a received action: a scene
-//     bound to that event would loop through the integration.
+// The triggers "Game finished" and "New rating record" are fired by
+// src/players.js.
 // -----------------------------------------------------------------------------
 
-import { createLogger } from '@gladysassistant/integration-sdk';
-import { signalDevice } from './devices/index.js';
+import { MESSAGES, TEXT } from './i18n.js';
 
-const logger = createLogger({ name: 'scenes' });
+/** The longest wait for the puzzle of the day. */
+const PUZZLE_WAIT_MS = 15_000;
 
-export const SCENE_ACTIONS = {
-  // The ack is awaited under the action's `timeout_seconds` (15 s in the
-  // manifest), counted from the moment the scene reaches the action.
-  async identify_device(gladys, { fields, config }) {
-    logger.info(`Scene action identify_device <- ${fields.device}`);
-    const signalled = await signalDevice(gladys, fields.device, config);
-    return { signalled };
-  },
+export const SCENE_ACTION = {
+  GET_PLAYER: 'get_player',
+  GET_DAILY_PUZZLE: 'get_daily_puzzle',
 };
+
+/** The ratings given as outputs of their own. */
+export const RATING_OUTPUTS = ['bullet', 'blitz', 'rapid', 'classical', 'daily', 'puzzle'];
+
+/**
+ * @param {import('./players.js').Players} players
+ * @param {{ player?: string }} fields
+ * @param {string} language
+ */
+export function getPlayer(players, fields, language) {
+  const record = fields.player ? players.recordByDevice(fields.player) : undefined;
+  if (!record) {
+    throw new Error(MESSAGES.thrown(TEXT.unknownPlayer));
+  }
+  const today = players.today(record);
+  const outputs = {
+    summary: MESSAGES.summary({
+      name: players.nameOf(record),
+      ratings: players.ratingsOf(record),
+      today,
+      lastGame: record.lastGame,
+    })[language],
+    games_today: today.games,
+    wins_today: today.wins,
+  };
+  for (const control of RATING_OUTPUTS) {
+    const value = record.ratings?.[control];
+    if (value) {
+      outputs[`rating_${control}`] = value.rating;
+    }
+  }
+  if (record.lastGame) {
+    outputs.last_result = record.lastGame.result;
+    outputs.last_opponent = record.lastGame.opponent;
+  }
+  if (record.platform === 'lichess' && record.online !== null) {
+    outputs.online = record.online;
+  }
+  return outputs;
+}
+
+/**
+ * @param {ReturnType<import('./puzzles.js').createPuzzles>} puzzles
+ * @param {{ platform?: string }} fields
+ * @param {string} language
+ */
+export async function getDailyPuzzle(puzzles, fields, language) {
+  // A scene action applies no default: an empty choice is Lichess.
+  const platform = fields.platform === 'chesscom' ? 'chesscom' : 'lichess';
+  let puzzle;
+  try {
+    // Within the 20 s of the action, even behind a cycle reading the site.
+    let timer;
+    puzzle = await Promise.race([
+      puzzles.get(platform),
+      new Promise((resolve, reject) => {
+        timer = setTimeout(() => reject(new Error('timeout')), PUZZLE_WAIT_MS);
+      }),
+    ]).finally(() => clearTimeout(timer));
+  } catch {
+    throw new Error(MESSAGES.thrown(TEXT.puzzleUnavailable));
+  }
+  const outputs = { url: puzzle.url, message: MESSAGES.puzzle(puzzle)[language] };
+  if (puzzle.title) {
+    outputs.title = puzzle.title;
+  }
+  if (puzzle.rating) {
+    outputs.rating = puzzle.rating;
+  }
+  return outputs;
+}
