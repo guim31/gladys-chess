@@ -34,7 +34,11 @@ test('a Lichess game, seen from either side; aborted games are not games', () =>
   assert.equal(won.opponent, 'Night-King96');
   assert.equal(lichess.toGame({ ...lost, status: 'aborted' }, 'thibault'), null);
   assert.equal(lichess.toGame({ ...lost, speed: 'ultraBullet' }, 'thibault').perf, 'ultraBullet');
-  assert.equal(lichess.toGame({ ...lost, variant: 'atomic' }, 'thibault').perf, 'atomic');
+  const atomic = lichess.toGame({ ...lost, variant: 'atomic' }, 'thibault');
+  assert.equal(atomic.perf, 'atomic');
+  // A variant moves the variant's rating: none is given for the time control.
+  assert.equal(atomic.rating, null);
+  assert.equal(atomic.ratingDiff, null);
 });
 
 test('Lichess ratings: only the time controls played; the best from the history', async () => {
@@ -84,6 +88,7 @@ test('a Chess.com game: win, draws by agreement or repetition, every other end l
   }
   assert.equal(chesscom.toGame(games[0], 'erik').timeControl, 'daily');
   assert.equal(chesscom.toGame({ ...base, rules: 'chess960' }, 'erik').perf, 'chess960');
+  assert.equal(chesscom.toGame({ ...base, rules: 'chess960' }, 'erik').rating, null);
 });
 
 test('Chess.com stats, profile name and months', async () => {

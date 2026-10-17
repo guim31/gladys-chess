@@ -200,6 +200,9 @@ export const TEXT = {
 /** One text in every language, from a function of the language. */
 const all = (build) => Object.fromEntries(LANGUAGES.map((lang) => [lang, build(lang)]));
 
+/** ": ", with the space French puts before it. */
+const colon = (lang) => (lang === 'fr' ? ' : ' : ': ');
+
 const signed = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : '±0');
 
 /** "1744 −5", "1744", or "" */
@@ -238,7 +241,9 @@ export const MESSAGES = {
       de: games === 1 ? 'Partie' : 'Partien',
       es: games === 1 ? 'partida' : 'partidas',
     };
-    return all((lang) => (games === 0 ? `0 ${word[lang]}` : `${games} ${word[lang]}: ${score}`));
+    return all((lang) =>
+      games === 0 ? `0 ${word[lang]}` : `${games} ${word[lang]}${colon(lang)}${score}`,
+    );
   },
 
   /** "Blitz 1744" */
@@ -256,16 +261,16 @@ export const MESSAGES = {
       const list = ratings
         .slice(0, 3)
         .map(({ control, rating }) => `${CONTROLS[lang][control]} ${rating}`);
-      parts.push(`${name}${list.length ? `: ${list.join(', ')}` : ''}.`);
-      parts.push(`${TEXT.today[lang]}: ${MESSAGES.today(today)[lang]}.`);
+      parts.push(`${name}${list.length ? `${colon(lang)}${list.join(', ')}` : ''}.`);
+      parts.push(`${TEXT.today[lang]}${colon(lang)}${MESSAGES.today(today)[lang]}.`);
       if (lastGame) {
-        parts.push(`${TEXT.lastGame[lang]}: ${MESSAGES.game(lastGame)[lang]}.`);
+        parts.push(`${TEXT.lastGame[lang]}${colon(lang)}${MESSAGES.game(lastGame)[lang]}.`);
       }
       return parts.join(' ');
     }),
 
   /** "thibault: Win vs Pehachzed (blitz, 1744 −5)" */
-  gameEvent: (name, game) => all((lang) => `${name}: ${MESSAGES.game(game)[lang]}`),
+  gameEvent: (name, game) => all((lang) => `${name}${colon(lang)}${MESSAGES.game(game)[lang]}`),
 
   /** "thibault: new blitz record, 1801 (previous best 1790)" */
   recordEvent: (name, control, rating, previous) =>
@@ -290,7 +295,7 @@ export const MESSAGES = {
         es: `Problema del día de ${brand}`,
       }[lang];
       const detail = puzzle.title ?? (puzzle.rating ? String(puzzle.rating) : null);
-      return `${head}${detail ? ` (${detail})` : ''}: ${puzzle.url}`;
+      return `${head}${detail ? ` (${detail})` : ''}${colon(lang)}${puzzle.url}`;
     }),
 
   /** A line of the "Check the players" action. */
@@ -316,7 +321,7 @@ export const MESSAGES = {
       const ratings = player.ratings
         .map(({ control, rating }) => `${CONTROLS[lang][control]} ${rating}`)
         .join(', ');
-      return `${who}: ${ratings || TEXT.noGame[lang]}`;
+      return `${who}${colon(lang)}${ratings || TEXT.noGame[lang]}`;
     }),
 
   /** The usernames that are not usernames, and the ones beyond the limit. */

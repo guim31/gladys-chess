@@ -76,7 +76,7 @@ test('a new Lichess game fires "Game finished" with its result and rating change
     result_text: 'Victoire',
     opponent: 'Opponent42',
     url: 'https://lichess.org/NewGame1',
-    summary: 'thibault (Lichess): Victoire contre Opponent42 (blitz, 1756 +6)',
+    summary: 'thibault (Lichess) : Victoire contre Opponent42 (blitz, 1756 +6)',
     rating: 1756,
     rating_diff: 6,
     opponent_rating: 1760,
@@ -277,4 +277,88 @@ test('a player removed from the configuration is forgotten', async () => {
     ['Hikaru (Chess.com)'],
   );
   assert.equal(w.players.records.has('lichess:thibault'), false);
+});
+
+test('a device added days after its discovery fires none of the games in between', async () => {
+  const w = await createWorld({ lichess: ['thibault'] });
+  // Discovered, not added; three days of games go by.
+  for (let i = 0; i < 3; i += 1) {
+    w.network.state.games.thibault.unshift(
+      lichessGame('thibault', { gameId: `Old${i}`, endedAt: START + (i + 1) * 86_400_000 }),
+    );
+  }
+  w.advance(4 * 86_400_000);
+  w.network.state.users.thibault.perfs.blitz.rating = 1990;
+  await createAll(w);
+  assert.deepEqual(w.gladys.fake.sceneEvents, []);
+  assert.equal(
+    lastState(w.gladys, 'lichess', 'thibault', 'last_game').includes('Opponent42'),
+    true,
+  );
+  // The next game is news.
+  w.advance(5 * MINUTE);
+  w.network.state.games.thibault.unshift(
+    lichessGame('thibault', { gameId: 'New', endedAt: w.clock.now - MINUTE }),
+  );
+  await w.app.poller.cycle();
+  assert.deepEqual(
+    w.gladys.fake.sceneEvents.map((e) => e.data.url),
+    ['https://lichess.org/New'],
+  );
+});
+
+test('a rating history that failed is asked again: no record against a partial best', async () => {
+  const w = await createWorld({ lichess: ['thibault'], connect: false });
+  w.network.state.history.thibault = undefined;
+  await w.gladys.connect();
+  await createAll(w);
+  assert.equal(w.players.records.get('lichess:thibault').bestSeeded, false);
+  w.network.state.history.thibault = (await import('./helpers/network.js')).fixture(
+    'lichess/rating-history-thibault.json',
+  );
+  w.advance(5 * MINUTE);
+  w.network.state.users.thibault.perfs.blitz.rating = 1800;
+  await w.app.poller.cycle();
+  assert.deepEqual(w.gladys.fake.sceneEvents, []);
+  assert.equal(w.players.records.get('lichess:thibault').best.blitz, 1970);
+});
+
+test('more than 100 Lichess games in a day: the counters go on', async () => {
+  const w = await createWorld({ lichess: ['thibault'] });
+  await createAll(w);
+  const midnight = Date.parse('2026-10-17T22:00:00Z');
+  w.clock.now = midnight + 60 * MINUTE;
+  let n = 0;
+  const play = (count) => {
+    for (let i = 0; i < count; i += 1) {
+      n += 1;
+      w.network.state.games.thibault.unshift(
+        lichessGame('thibault', { gameId: `B${n}`, endedAt: midnight + n * 10_000 }),
+      );
+    }
+  };
+  play(80);
+  await w.app.poller.cycle();
+  assert.equal(lastState(w.gladys, 'lichess', 'thibault', 'games_today'), 80);
+  w.advance(5 * MINUTE);
+  play(80);
+  await w.app.poller.cycle();
+  assert.equal(lastState(w.gladys, 'lichess', 'thibault', 'games_today'), 160);
+  assert.equal(lastState(w.gladys, 'lichess', 'thibault', 'wins_today'), 160);
+});
+
+test('an unreadable Lichess status for half an hour: online is unknown, not stuck', async () => {
+  const w = await createWorld({ lichess: ['thibault'] });
+  w.network.state.statuses.thibault = { online: true };
+  await createAll(w);
+  w.advance(5 * MINUTE);
+  await w.app.poller.cycle();
+  assert.equal(w.players.records.get('lichess:thibault').online, true);
+  // Only the status request fails.
+  for (let i = 0; i < 8; i += 1) {
+    w.advance(5 * MINUTE);
+    w.network.state.statusDown = true;
+    await w.app.poller.cycle();
+  }
+  assert.equal(w.players.records.get('lichess:thibault').online, null);
 });

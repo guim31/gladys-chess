@@ -153,4 +153,6 @@ sein Titel oder seine Schwierigkeit und eine fertige **Nachricht**.
 - Lichess sortiert die Partien nach Startdatum: eine Fernschachpartie, die vor
   der zuletzt gesehenen Partie begonnen wurde, löst „Partie beendet“
   vielleicht nie aus und zählt nicht für heute.
-- Chess.com gibt die Wertungsänderung einer Partie nicht an.
+- Chess.com gibt die Wertungsänderung einer Partie nicht an, und eine
+  Variantenpartie (Chess960, Atomic…) liefert in „Partie beendet“ keine
+  Wertung.

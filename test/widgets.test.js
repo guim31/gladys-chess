@@ -119,10 +119,7 @@ test('scene action "Get the puzzle of the day": Lichess by default', async () =>
   const lichess = await w.gladys.fake.sceneAction('get_daily_puzzle', {});
   assert.deepEqual(lichess.data.outputs, {
     url: 'https://lichess.org/training/iUIdn',
-    message: 'Problème du jour Lichess (2108) : https://lichess.org/training/iUIdn'.replace(
-      ' : ',
-      ': ',
-    ),
+    message: 'Problème du jour Lichess (2108) : https://lichess.org/training/iUIdn',
     rating: 2108,
   });
   const chesscom = await w.gladys.fake.sceneAction('get_daily_puzzle', { platform: 'chesscom' });

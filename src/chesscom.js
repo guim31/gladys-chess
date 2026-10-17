@@ -142,7 +142,9 @@ export function toGame(game, id) {
     perf: game.rules && game.rules !== 'chess' ? game.rules : timeControl,
     opponent: String(other.username ?? '?'),
     opponentRating: Number.isFinite(other.rating) ? other.rating : null,
-    rating: Number.isFinite(me.rating) ? me.rating : null,
+    // A Chess960 game moves the Chess960 rating, not the time control's.
+    rating:
+      Number.isFinite(me.rating) && (!game.rules || game.rules === 'chess') ? me.rating : null,
     // Chess.com does not give the rating change of a game.
     ratingDiff: null,
     rated: game.rated === true,

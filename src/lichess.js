@@ -134,6 +134,7 @@ export function toGame(game, id) {
   if (game.winner) {
     result = game.winner === color ? 'win' : 'loss';
   }
+  const variant = Boolean(game.variant && game.variant !== 'standard');
   let opponent = other.user?.name;
   if (!opponent) {
     opponent = other.aiLevel ? `Stockfish ${other.aiLevel}` : 'Anonymous';
@@ -147,8 +148,9 @@ export function toGame(game, id) {
     perf: perfOf(game),
     opponent: String(opponent),
     opponentRating: Number.isFinite(other.rating) ? other.rating : null,
-    rating: Number.isFinite(me.rating) ? me.rating + (me.ratingDiff ?? 0) : null,
-    ratingDiff: Number.isFinite(me.ratingDiff) ? me.ratingDiff : null,
+    // A variant game moves the variant's rating, not the time control's.
+    rating: Number.isFinite(me.rating) && !variant ? me.rating + (me.ratingDiff ?? 0) : null,
+    ratingDiff: Number.isFinite(me.ratingDiff) && !variant ? me.ratingDiff : null,
     rated: game.rated === true,
   };
 }

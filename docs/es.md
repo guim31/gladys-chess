@@ -153,4 +153,5 @@ título o su dificultad, y un **mensaje** listo para enviar.
 - Lichess ordena las partidas por fecha de inicio: una partida por
   correspondencia empezada antes de la última partida vista puede no disparar
   nunca «Partida terminada», ni contar en el día.
-- Chess.com no da el cambio de puntuación de una partida.
+- Chess.com no da el cambio de puntuación de una partida, y una partida de
+  variante (Chess960, Atomic…) no da puntuación en «Partida terminada».

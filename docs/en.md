@@ -143,4 +143,5 @@ title or difficulty, and a **message** ready to send.
 - "Today" counts at most the last 100 Lichess games of the day.
 - Lichess lists the games by start date: a correspondence game started before
   the last game seen may never fire "Game finished", nor count today.
-- Chess.com does not give the rating change of a game.
+- Chess.com does not give the rating change of a game, and a variant game
+  (Chess960, Atomic…) gives no rating in "Game finished".

@@ -152,4 +152,6 @@ titre ou sa difficulté, et un **message** prêt à envoyer.
 - Lichess classe les parties par date de début : une partie par correspondance
   commencée avant la dernière partie vue peut ne jamais déclencher « Partie
   terminée », ni compter dans la journée.
-- Chess.com ne donne pas la variation de classement d'une partie.
+- Chess.com ne donne pas la variation de classement d'une partie, et une partie
+  de variante (Chess960, Atomic…) ne donne aucun classement dans « Partie
+  terminée ».

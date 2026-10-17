@@ -102,6 +102,9 @@ export function createNetwork({ lichess = [], chesscom = [] } = {}) {
       return state.history[match[1]] ? json(state.history[match[1]]) : notFound();
     }
     if (path === '/api/users/status') {
+      if (state.statusDown) {
+        return json({ error: 'down' }, 503);
+      }
       const ids = url.searchParams.get('ids').split(',');
       return json(
         ids

@@ -13,6 +13,9 @@
 
 import { MESSAGES, TEXT } from './i18n.js';
 
+/** The longest wait for the puzzle of the day. */
+const PUZZLE_WAIT_MS = 15_000;
+
 export const SCENE_ACTION = {
   GET_PLAYER: 'get_player',
   GET_DAILY_PUZZLE: 'get_daily_puzzle',
@@ -68,7 +71,14 @@ export async function getDailyPuzzle(puzzles, fields, language) {
   const platform = fields.platform === 'chesscom' ? 'chesscom' : 'lichess';
   let puzzle;
   try {
-    puzzle = await puzzles.get(platform);
+    // Within the 20 s of the action, even behind a cycle reading the site.
+    let timer;
+    puzzle = await Promise.race([
+      puzzles.get(platform),
+      new Promise((resolve, reject) => {
+        timer = setTimeout(() => reject(new Error('timeout')), PUZZLE_WAIT_MS);
+      }),
+    ]).finally(() => clearTimeout(timer));
   } catch {
     throw new Error(MESSAGES.thrown(TEXT.puzzleUnavailable));
   }

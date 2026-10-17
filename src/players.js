@@ -36,6 +36,9 @@ export const TRIGGER = {
   RATING_RECORD: 'rating_record',
 };
 
+/** Past this age without a Lichess status, online and playing are unknown. */
+const STATUS_MAX_AGE_MS = 30 * 60_000;
+
 /** Most "Game finished" events fired by one read (after a long outage, say). */
 export const MAX_GAME_EVENTS = 5;
 
@@ -150,11 +153,21 @@ export class Players {
    * @param {Array<{ platform: string, id: string, name: string }>} players
    */
   async refreshPlayers(players) {
-    const lichessIds = players.filter((p) => p.platform === 'lichess').map((p) => p.id);
+    // The two sites in parallel, the players of one site in turn.
+    await Promise.all([
+      this.refreshSite(players.filter((p) => p.platform === 'lichess')),
+      this.refreshSite(players.filter((p) => p.platform === 'chesscom')),
+    ]);
+  }
+
+  async refreshSite(players) {
     let statuses = null;
-    if (lichessIds.length > 0) {
+    if (players.length > 0 && players[0].platform === 'lichess') {
       try {
-        statuses = await lichess.fetchStatuses(this.http, lichessIds);
+        statuses = await lichess.fetchStatuses(
+          this.http,
+          players.map((p) => p.id),
+        );
         this.issues.ok('lichess-status', 'Lichess online statuses read again');
       } catch (err) {
         this.issues.fail('lichess-status', `Lichess online statuses: ${err.message}`);
@@ -167,6 +180,29 @@ export class Players {
         // Logged once by the issue log; the next cycle retries.
         logger.debug(`${playerKey(player)}: ${err.message}`);
       }
+    }
+  }
+
+  /**
+   * The user added the device of a player (or added it again): the games and
+   * records since its discovery are not news. Called before its first read
+   * as a followed player.
+   */
+  follow(record) {
+    if (!record.followed) {
+      record.followed = true;
+      record.followedSince = this.now();
+      // Re-seeded silently at the next read: the best may be days old.
+      record.reseed = true;
+      this.persistNeeded = true;
+    }
+  }
+
+  /** The user removed the device of a player. */
+  unfollow(record) {
+    if (record.followed) {
+      record.followed = false;
+      this.persistNeeded = true;
     }
   }
 
@@ -197,6 +233,9 @@ export class Players {
     }
     this.lastResults.set(key, { ok: true });
     const record = this.apply(player, snapshot, statuses);
+    // The last game seen is on disk before its event leaves: a restart never
+    // fires it again.
+    await this.save();
     try {
       await this.publishStates(record);
       this.issues.ok('gladys', 'Gladys accepts the states again');
@@ -219,17 +258,21 @@ export class Players {
     if (player.platform === 'lichess') {
       const user = await lichess.fetchUser(this.http, player.id);
       let apiBest = {};
-      if (!previous) {
-        apiBest = await lichess.fetchBestRatings(this.http, player.id).catch((err) => {
+      let bestSeeded = previous?.bestSeeded ?? false;
+      if (!bestSeeded) {
+        try {
+          apiBest = await lichess.fetchBestRatings(this.http, player.id);
+          bestSeeded = true;
+        } catch (err) {
+          // Asked again at the next read: no record fires meanwhile.
           logger.debug(`${player.id}: no rating history (${err.message})`);
-          return {};
-        });
+        }
       }
       let games = await lichess.fetchGames(this.http, player.id, since);
       if (games.length === 0 && !previous?.lastGame) {
         games = await lichess.fetchGames(this.http, player.id, null, 1);
       }
-      return { ...user, apiBest, games };
+      return { ...user, apiBest, bestSeeded, games, truncated: games.length >= lichess.MAX_GAMES };
     }
 
     const profile = previous?.url
@@ -254,7 +297,7 @@ export class Players {
     this.http.forget(
       (url) => url.startsWith(base) && !months.some((month) => url === base + month),
     );
-    return { ...profile, ratings: stats.ratings, apiBest: stats.best, games };
+    return { ...profile, ratings: stats.ratings, apiBest: stats.best, bestSeeded: true, games };
   }
 
   /** Merge a read into the record of the player; queue the scene events. */
@@ -283,7 +326,13 @@ export class Players {
     if (first) {
       logger.info(`${deviceName(record)} found`);
     }
-    const followed = !first && this.isCreated(record);
+    if (!this.isCreated(record)) {
+      record.followed = false;
+    }
+    // Events only for a player followed before this read, with records only
+    // once the best ratings are known.
+    const followed = !first && record.followed === true && this.isCreated(record);
+    const recordsOn = followed && record.bestSeeded === true && !record.reseed;
     const language = this.getConfig().language;
     const device = idsOf(this.gladys, record).device;
     const playerName = this.nameOf(record);
@@ -293,7 +342,7 @@ export class Players {
     const previousRatings = JSON.stringify(record.ratings);
     for (const [control, value] of Object.entries(snapshot.ratings)) {
       const known = record.best[control];
-      if (followed && known !== undefined && value.rating > known && !value.provisional) {
+      if (recordsOn && known !== undefined && value.rating > known && !value.provisional) {
         events.push({
           key: TRIGGER.RATING_RECORD,
           log: `${deviceName(record)}: new ${control} record ${value.rating}`,
@@ -314,6 +363,10 @@ export class Players {
       );
     }
     record.ratings = snapshot.ratings;
+    record.bestSeeded = snapshot.bestSeeded;
+    if (followed) {
+      record.reseed = false;
+    }
     if (JSON.stringify(record.ratings) !== previousRatings) {
       this.widgetChanged = true;
     }
@@ -326,13 +379,26 @@ export class Players {
       }
       record.online = status.online;
       record.playing = status.playing;
+      record.statusAt = this.now();
+    } else if (
+      player.platform === 'lichess' &&
+      record.online !== null &&
+      this.now() - (record.statusAt ?? 0) > STATUS_MAX_AGE_MS
+    ) {
+      // The statuses cannot be read for a while: unknown, rather than an
+      // "online" that would stay true for hours.
+      record.online = null;
+      record.playing = null;
+      this.widgetChanged = true;
     }
 
     // Games.
+    const previousWatermark = record.watermark;
     const games = [...snapshot.games].sort((a, b) => a.endedAt - b.endedAt);
     const newest = games.at(-1);
     if (record.watermark !== null) {
-      const fresh = games.filter((game) => game.endedAt > record.watermark);
+      const since = Math.max(record.watermark, record.followedSince ?? 0);
+      const fresh = games.filter((game) => game.endedAt > since);
       if (followed) {
         if (fresh.length > MAX_GAME_EVENTS) {
           logger.info(
@@ -353,12 +419,21 @@ export class Players {
       record.watermark = newest.endedAt;
       this.widgetChanged = true;
     } else if (record.watermark === null) {
-      // Never played: the next game is the first news.
-      record.watermark = this.now();
+      // Never played: the next game is the first news. An hour back, for the
+      // games a site publishes late.
+      record.watermark = this.now() - 60 * 60_000;
     }
     const midnight = localMidnight(this.now());
-    const today = { date: localDate(this.now()), games: 0, wins: 0, draws: 0, losses: 0 };
-    for (const game of games.filter((g) => g.endedAt >= midnight)) {
+    const date = localDate(this.now());
+    let today = { date, games: 0, wins: 0, draws: 0, losses: 0 };
+    let counted = games;
+    if (snapshot.truncated && record.today?.date === date && previousWatermark !== null) {
+      // More games since the last read than one request returns: the
+      // counters go on from the last read instead of starting again.
+      today = { ...record.today };
+      counted = games.filter((game) => game.endedAt > previousWatermark);
+    }
+    for (const game of counted.filter((g) => g.endedAt >= midnight)) {
       today.games += 1;
       today[{ win: 'wins', draw: 'draws', loss: 'losses' }[game.result]] += 1;
     }
@@ -422,12 +497,17 @@ export class Players {
     // tried again after the next read.
     const events = this.pendingEvents.get(key) ?? [];
     while (events.length > 0) {
-      const event = events[0];
-      await this.gladys.publishSceneEvent(event.key, event.data);
-      events.shift();
+      // Out of the queue before the await: a concurrent publication of the
+      // same player never sends it twice.
+      const event = events.shift();
+      try {
+        await this.gladys.publishSceneEvent(event.key, event.data);
+      } catch (err) {
+        events.unshift(event);
+        throw err;
+      }
       logger.info(event.log);
     }
-    this.pendingEvents.delete(key);
   }
 
   /** Forget the records of the players no longer configured. */

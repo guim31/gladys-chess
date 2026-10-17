@@ -157,13 +157,21 @@ export function registerHandlers(gladys, { store = new Store(), fetch, timers = 
     if (!record) {
       return;
     }
-    await poller.refreshNow([playerKey(record)], { maxAgeMs: 60_000 });
+    players.follow(record);
+    // A player followed again reads now: its best ratings are re-seeded
+    // before the first record can fire.
+    await poller.refreshNow([playerKey(record)], { maxAgeMs: record.reseed ? 0 : 60_000 });
     await players.publishStates(record, { force: true });
     gladys.requestWidgetRefresh(WIDGET_KEY);
   }
   gladys.onDeviceCreated(onDeviceAdded);
   gladys.onDeviceUpdated(onDeviceAdded);
-  gladys.onDeviceDeleted(async () => {
+  gladys.onDeviceDeleted(async (device) => {
+    await ready;
+    const record = device && players.recordByDevice(device.external_id);
+    if (record) {
+      players.unfollow(record);
+    }
     gladys.requestWidgetRefresh(WIDGET_KEY);
   });
 
