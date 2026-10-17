@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-17
+
 ### Added
 
 - Follow Lichess and Chess.com players (10 per site) from their public
@@ -24,3 +26,6 @@ the notes of the version's GitHub Release.
   links to the profile, the last game and the puzzle of the day.
 - "Check the players" button in the configuration.
 - English, French, German and Spanish texts and documentation.
+
+[Unreleased]: https://github.com/guim31/gladys-chess/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-chess/releases/tag/v1.0.0
