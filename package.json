@@ -1,6 +1,6 @@
 {
   "name": "gladys-chess",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Gladys Assistant integration: follow Lichess and Chess.com players (ratings, games, records, puzzle of the day).",
   "type": "module",
